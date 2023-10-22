@@ -10,10 +10,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Public title As String
-Public sideBarLabel As String
-Public sideBarOrder As long
 
-Public Function CreateFrontMatter()
+Public Function Create()
   Dim s As String
   s = "---" & vbCrLf
   s = s & "title: " & title & vbCrLf

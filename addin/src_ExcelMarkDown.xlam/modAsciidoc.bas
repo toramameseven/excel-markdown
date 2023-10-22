@@ -475,6 +475,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
             '' work at sheet
             Dim i As Long
             Dim sheetNum As Long
+            Dim nextIndex As Long
             For i = rowStart To rowEnd
                 moduleLogs.Address = Cells(i, VALUE_COL + columnOffset).Address
 
@@ -502,9 +503,10 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 '' get split FileName suffix
                 Dim isNotDoSuffix As Boolean
                 isNotDoSuffix = False
-                If LCase(Left(flg, 7)) = "suffix:" Then
+                If LCase(Left(flg, 5)) = "file:" Then
                     isNotDoSuffix = True
-                    splitFileNameSuffix = "_" & Mid(flg, 8)
+                    splitFileNameSuffix = Mid(flg, 6)
+                    fileNameForNoSplit = ""
                 End If
 
                 Dim isNotDoTag2 As Boolean
@@ -513,6 +515,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 '' splitSection
                 If (isSplitSection) And flg = SECTION_TAG2 Then
                     isNotDoTag2 = True
+                    nextIndex = 0
                     langDocs(ii).convertArabicNumSubStep
                     If langDocs(ii).PathToSave <> "" Then
                         langDocs(ii).SaveToFileUTF8 langDocs(ii).PathToSave
@@ -539,7 +542,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 
                 '' create body  (adoc, textile, markdown)
                 Dim resultMakeBody As String
-                Dim nextIndex As Long
+
                 resultMakeBody = ""
                 If isNotDoSuffix Or _
                     isNotDoTag2 Or _
@@ -855,7 +858,7 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
             strPath = strPath & "/"
         End If
         
-        tempBody = MarkDownIndent(nestIndex) & "![](" & strPath & GetFileName(pic) & ")"
+        tempBody = MarkDownIndent(nestIndex) & "![](./" & strPath & GetFileName(pic) & ")"
         
     ElseIf Left(flg, 4) = "|===" Or LCase(flg) = "table" Then
         Debug.Print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>", iRow
