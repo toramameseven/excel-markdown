@@ -380,6 +380,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
     Set langDocs(1) = New clsString
     Set langDocs(2) = New clsString
 
+    Dim splitFileNameSuffix As String
 
     For Each sh In sheetCollection
         sheetNo = sheetNo + 1
@@ -404,7 +405,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
         
 
         Dim isSplitSection As Boolean
-        isSplitSection = (sheetInfo.Item("IsSectionSplit") = "TRUE")
+        isSplitSection = (LCase(sheetInfo.Item("IsSectionSplit")) = "true")
         
         '' outdir\(lang)\subdir\xxx.md
         Dim outDir As String
@@ -468,10 +469,6 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 fileNameForNoSplit = sheetInfo.Item("fileName")
             End If
 
-            fileNameForNoSplit = IIf((isSplitSection), "", fileNameForNoSplit)
-
-            Dim splitSectionFileName As String
-            splitSectionFileName = ""
             isListContinue = False
         
 
@@ -502,9 +499,20 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                     flg = GetSectionFlg(flg)
                 End If
 
+                '' get split FileName suffix
+                Dim isNotDoSuffix As Boolean
+                isNotDoSuffix = False
+                If LCase(Left(flg, 7)) = "suffix:" Then
+                    isNotDoSuffix = True
+                    splitFileNameSuffix = "_" & Mid(flg, 8)
+                End If
+
+                Dim isNotDoTag2 As Boolean
+                isNotDoTag2 = False
                
                 '' splitSection
                 If (isSplitSection) And flg = SECTION_TAG2 Then
+                    isNotDoTag2 = True
                     langDocs(ii).convertArabicNumSubStep
                     If langDocs(ii).PathToSave <> "" Then
                         langDocs(ii).SaveToFileUTF8 langDocs(ii).PathToSave
@@ -516,13 +524,16 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                     '' new file  '' langDocs(ii)
                     Set langDocs(ii) = New clsString
                     isListContinue = False
-                                       
-                    splitSectionFileName = ""
-                    If flgB = "[#" Or flgB = "." Then
-                        splitSectionFileName = IIf(cellValueB = "", "", cellValueB)
-                    End If
-                    
-                    langDocs(ii).PathToSave = PathParentWithBS & splitSectionFileName & "." & tType
+                    langDocs(ii).Add ("---")
+                    langDocs(ii).Add ("title: " & cellValue)
+                    langDocs(ii).Add ("sidebar:")
+                    langDocs(ii).Add ("  label: " & cellValue)
+                    langDocs(ii).Add ("  order: " & CStr(sectionNoForInc))
+                    langDocs(ii).Add ("---")
+                    langDocs(ii).Add ("")
+
+                    langDocs(ii).PathToSave = PathParentWithBS & fileNameForNoSplit & splitFileNameSuffix & "." & tType
+                    Debug.Print "filename", langDocs(ii).PathToSave
                 End If
                 
                 
@@ -530,7 +541,9 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 Dim resultMakeBody As String
                 Dim nextIndex As Long
                 resultMakeBody = ""
-                If (flg = "" And cellValue = "" And pic = "") Or _
+                If isNotDoSuffix Or _
+                    isNotDoTag2 Or _
+                     (flg = "" And cellValue = "" And pic = "") Or _
                     IsCustomCurrentDocument(tType, flg) = False Or _
                     Left(flg, 2) = "//" Or _
                     LCase(cellValue) = "//empty" Or _
@@ -557,7 +570,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
 
 
             langDocs(ii).convertArabicNumSubStep
-            langDocs(ii).SaveToFileUTF8 PathParentWithBS & fileNameForNoSplit & splitSectionFileName & "." & tType
+            langDocs(ii).SaveToFileUTF8 PathParentWithBS & fileNameForNoSplit & splitFileNameSuffix & "." & tType
             allDocuments.AddDocument langDocs(ii), langPath, sheetInfo.Item("fileName")
         Next ii '' language
     Next '' sheet
@@ -571,7 +584,9 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
     Next
 
     '' save sheets markdown
-    MakeDocument = allDocuments.saveAll(tType, outDir, sheetInfo.Item("subFolder"))
+    If sheetCollection.Count > 1 Then
+        MakeDocument = allDocuments.saveAll(tType, outDir, sheetInfo.Item("subFolder"))
+    End If
     moduleLogs.OutputErrs
 End Function
 

@@ -14,9 +14,11 @@ Private stringCollection As Collection
 Public PathToSave As String
 Public SectionName As String
 Public CurrentWeight As Long
+Public frontMatter As clsFrontMatter
 
 Private Sub Class_Initialize()
     Set stringCollection = New Collection
+    Set frontMatter = New clsFrontMatter
 End Sub
 
 Public Sub Add(ByRef rData As Variant)

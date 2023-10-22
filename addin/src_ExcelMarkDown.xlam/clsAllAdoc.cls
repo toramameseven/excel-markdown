@@ -34,7 +34,7 @@ Public Sub AddDocument(ByRef document As clsString, ByVal lang As String, output
         documents.Add lang, document
     End If
 
-    If fileNames.Exists(outputFileName) Then
+    If fileNames.Exists(lang) Then
         '' do nothing
     Else
         fileNames.Add lang, outputFileName
