@@ -178,11 +178,19 @@ End Function
 
 Public Function GetOutDirFullPath() As String
     Dim s As String
+    Dim outS As String
     s = Me.Item("outDir")
     If s = "" Then
-        s = ActiveWorkbook.Path
+        outS = ActiveWorkbook.Path
     End If
-    GetOutDirFullPath = s
+
+    If InStr(s, ":") Then
+        outS = s
+    Else
+        outS = ActiveWorkbook.Path & "\" & s
+    End If
+
+    GetOutDirFullPath = outS
 End Function
 
 Public Function GetOutPicDirFullPath() As String
