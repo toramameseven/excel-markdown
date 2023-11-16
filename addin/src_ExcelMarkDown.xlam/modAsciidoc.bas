@@ -97,7 +97,7 @@ Public Sub CreateTemplate()
     
     infoRow = infoRow + 1
     Cells(infoRow, 1) = "LANG"
-    Cells(infoRow, 3) = "JP"
+    Cells(infoRow, 3) = "ja"
 
     infoRow = infoRow + 1
     Cells(infoRow, 1) = "subFolder"
@@ -117,7 +117,7 @@ Public Sub CreateTemplate()
     
     infoRow = infoRow + 1
     Cells(infoRow, 1) = "mdOffset"
-    Cells(infoRow, 3) = "0"
+    Cells(infoRow, 3) = "1"
     
     
     infoRow = infoRow + 1
@@ -132,6 +132,9 @@ Public Sub CreateTemplate()
     Cells(infoRow, 1) = "fileName"
     Cells(infoRow, 3) = ""
 
+    infoRow = infoRow + 1
+    Cells(infoRow, 1) = "Enable"
+    Cells(infoRow, 3) = "TRUE"
     
     'AB set to string format, and ime off
     columns("A:B").Select
@@ -380,7 +383,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
     Set langDocs(1) = New clsString
     Set langDocs(2) = New clsString
 
-    Dim splitFileNameSuffix As String
+    Dim splitFileName As String
 
     For Each sh In sheetCollection
         sheetNo = sheetNo + 1
@@ -505,7 +508,7 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 isNotDoSuffix = False
                 If LCase(Left(flg, 5)) = "file:" Then
                     isNotDoSuffix = True
-                    splitFileNameSuffix = Mid(flg, 6)
+                    splitFileName = Mid(flg, 6)
                     fileNameForNoSplit = ""
                 End If
 
@@ -514,16 +517,24 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                
                 '' splitSection
                 If (isSplitSection) And flg = SECTION_TAG2 Then
+
                     isNotDoTag2 = True
                     nextIndex = 0
-                    langDocs(ii).convertArabicNumSubStep
+                    '' for asciidoc
+                    '' langDocs(ii).convertArabicNumSubStep
                     If langDocs(ii).PathToSave <> "" Then
                         langDocs(ii).SaveToFileUTF8 langDocs(ii).PathToSave
+                        fileNameForNoSplit = ""
                     End If
                     
                     allDocuments.AddDocument langDocs(ii), langPath, ""
                     sectionNoForInc = sectionNoForInc + 1
-                    
+
+                    '' get fileName for split
+                    If splitFileName = "" Then
+                        splitFileName = LCase(FindAlphabetRegExp(Cells(i, VALUE_COL)))
+                        fileNameForNoSplit = ""
+                    End If
                     '' new file  '' langDocs(ii)
                     Set langDocs(ii) = New clsString
                     isListContinue = False
@@ -535,9 +546,10 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                     langDocs(ii).Add ("---")
                     langDocs(ii).Add ("")
 
-                    langDocs(ii).PathToSave = PathParentWithBS & fileNameForNoSplit & splitFileNameSuffix & "." & tType
+                    langDocs(ii).PathToSave = PathParentWithBS & fileNameForNoSplit & splitFileName & "." & tType
+                    splitFileName = ""
                     Debug.Print "filename", langDocs(ii).PathToSave
-                End If
+                End If '' splitSection
                 
                 
                 '' create body  (adoc, textile, markdown)
@@ -569,14 +581,15 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
                 Else
                     ''Do nothing
                 End If
-            Next i '' end sheet parse
+            Next i '' end sheet parse (rows)
 
-
-            langDocs(ii).convertArabicNumSubStep
-            langDocs(ii).SaveToFileUTF8 PathParentWithBS & fileNameForNoSplit & splitFileNameSuffix & "." & tType
-            allDocuments.AddDocument langDocs(ii), langPath, sheetInfo.Item("fileName")
+            If (LCase(sheetInfo.Item("IsSectionSplit")) = "false") Then
+                '' langDocs(ii).convertArabicNumSubStep
+                langDocs(ii).SaveToFileUTF8 PathParentWithBS & fileNameForNoSplit & splitFileName & "." & tType
+                allDocuments.AddDocument langDocs(ii), langPath, sheetInfo.Item("fileName")
+            End If
         Next ii '' language
-    Next '' sheet
+    Next '' sheets
 
     
     '' for split files
@@ -593,6 +606,16 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
     moduleLogs.OutputErrs
 End Function
 
+Function FindAlphabetRegExp(ByRef s As String) As String
+    Dim reg As New RegExp
+    reg.Pattern = "[^a-zA-Z01233456789.]"
+    reg.Global = True
+    FindAlphabetRegExp = reg.Replace(s, "-")
+End Function
+
+Sub test_FindAlphabetRegExp()
+    Debug.Print FindAlphabetRegExp("eeeeee000‚ ‚ ‚ ‚ rrrr\ttt\tttt\.tdc")
+End Sub
 
 Private Function IsCustomCurrentDocument(docType As String, flg As String) As Boolean
     If flg = "" Then

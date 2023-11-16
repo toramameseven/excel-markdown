@@ -211,7 +211,7 @@ saveUtf8_Normal_exit:
 End Function
 
 
-
+'' does not use. fro asciidocs
 Public Sub convertArabicNumSubStep()
     Dim ss() As String
     ss = Split(Me.Joins(vbCrLf), vbCrLf)
