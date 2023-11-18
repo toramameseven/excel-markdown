@@ -197,13 +197,8 @@ Public Function GetSectionListOnlyTitle(Optional ByVal upTo As Long = 3) As Stri
             Dim pic As String
             Dim cellValue As String
             
-            ' Dim flgB As String
-            ' Dim picB As String
-            ' Dim cellValueB As String
-
             flg = Cells(i, FLG_COL)
             If Left(flg, 1) = SECTION_TAG Then
-                ' flgB = Cells(i - 1, FLG_COL)
                 If getSectionIndexes(flg) <= upTo Then
                     cellValue = TrimLeft(Cells(i, VALUE_COL + 0))
                     sections.Add flg & cellValue & "\\" & Cells(i, FLG_COL).Address
@@ -356,9 +351,6 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
     Dim pic As String
     Dim cellValue As String
     
-    Dim flgB As String
-    Dim picB As String
-    Dim cellValueB As String
     
     '' section no is for all sheet
     Call ResetSections
@@ -481,10 +473,6 @@ Public Function MakeDocument(ByVal tType As String, Optional ByVal makeOption As
             Dim nextIndex As Long
             For i = rowStart To rowEnd
                 moduleLogs.Address = Cells(i, VALUE_COL + columnOffset).Address
-
-                flgB = Cells(i - 1, FLG_COL)
-                picB = Cells(i - 1, PIC_COL + columnOffset)
-                cellValueB = Cells(i - 1, VALUE_COL + columnOffset)
 
                 flg = Cells(i, FLG_COL)
 
@@ -720,9 +708,6 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
     Dim pic As String
     Dim cellValue As String
     
-    Dim flgB As String
-    Dim picB As String
-    Dim cellValueB As String
     
     Dim flgN As String
     Dim picN As String
@@ -738,7 +723,6 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
     flgSplit = Split(flg + " ", " ")(0)
     pic = trim((Cells(iRow, pictureColumn)))
     cellValue = trim(Cells(iRow, valueColumn))
-    cellValue = RegLinkToMarkDown(cellValue)
     cellValue = Replace(cellValue, "<", "\<")
 
     If UCase(flgSplit) = "MD" Then
@@ -748,14 +732,7 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
     flgN = trim((Cells(iRow + 1, FLG_COL)))
     picN = trim((Cells(iRow + 1, pictureColumn)))
     cellValueN = trim(Cells(iRow + 1, valueColumn))
-    cellValueN = RegLinkToMarkDown(cellValueN)
-    
-    flgB = trim((Cells(iRow - 1, FLG_COL)))
-    picB = trim((Cells(iRow - 1, pictureColumn)))
-    cellValueB = trim(Cells(iRow - 1, valueColumn))
-    cellValueB = RegLinkToMarkDown(cellValueB)
-    
-     
+ 
     Dim originalRow As Long
     originalRow = iRow
     
@@ -864,12 +841,7 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
             Stop
         End If
         
-    ElseIf flg = "[[]]" Then
-        tempBody = ""
-    
-    ElseIf flg = "[]" Then
-        tempBody = ""
-        
+  
     ElseIf UCase(flg) = "NOTE:" Or UCase(flg) = "TIP:" Or UCase(flg) = "IMPORTANT:" Or UCase(flg) = "CAUTION:" Or UCase(flg) = "WARNING:" Then
        tempBody = MarkDownIndent(nestIndex) & "> " & UCase(flg) & " " & cellValue
         
@@ -884,7 +856,7 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
         tempBody = MarkDownIndent(nestIndex) & "![](./" & strPath & GetFileName(pic) & ")"
         
     ElseIf Left(flg, 4) = "|===" Or LCase(flg) = "table" Then
-        Debug.Print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>", iRow
+        ''Debug.Print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>", iRow
         Dim tableColTo As Long
         Dim tableRowTo As Long
 
@@ -994,8 +966,6 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
     ElseIf flg = "//" Then
         tempBody = "<!--" & cellValue & "-->"
         
-    ElseIf flg = "[#" Or Left(flg, 1) = "[" Then
-        tempBody = ""
 
     ElseIf UCase(flg) = "LISTOFF" Then
         nestIndex = nestIndex - 1
@@ -1003,7 +973,11 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
             nestIndex = 0
         End If
     Else
-        tempBody = MarkDownIndent(nestIndex) & IIf(flg = "", "", flg & " ") & sep & cellValue
+        If cellValue <> "" Then
+            tempBody = MarkDownIndent(nestIndex) & IIf(flg = "", "", flg & " ") & sep & cellValue
+        Else
+            tempBody = flg
+        End If
     End If
     
     makeBodyMD = tempBody
@@ -1030,9 +1004,6 @@ Private Function makeBodyTextile(ByRef iRow As Long, ByRef isListContinue As Boo
     Dim pic As String
     Dim cellValue As String
     
-    Dim flgB As String
-    Dim picB As String
-    Dim cellValueB As String
     
     Dim flgN As String
     Dim picN As String
@@ -1052,9 +1023,6 @@ Private Function makeBodyTextile(ByRef iRow As Long, ByRef isListContinue As Boo
     picN = trim((Cells(iRow + 1, pictureColumn)))
     cellValueN = (trim(Cells(iRow + 1, valueColumn)))
     
-    flgB = trim((Cells(iRow - 1, FLG_COL)))
-    picB = trim((Cells(iRow - 1, pictureColumn)))
-    cellValueB = (trim(Cells(iRow - 1, valueColumn)))
     
     
     Dim sep As String

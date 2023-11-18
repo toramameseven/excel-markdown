@@ -334,58 +334,8 @@ Function RegFind(myPattern As String, myString As String) As Boolean
     RegFind = retVal
 End Function
 
-Sub RegFindLink_Test()
-    Dim r As Variant
-    r = RegLinkToMarkDown("<<ddddd1,dddddd>>ddddddddddddd<<ddddd2,dddddd>>ddddddddddddd<<,ss‚ ‚ ‚ ss>>")
-    Debug.Print r
-        r = RegLinkToMarkDown("ssssssssssssssssssssssssssssssssssssssssssssssssssss")
-    Debug.Print r
-End Sub
 
 
-Function RegLinkToMarkDown(myString As String) As String
-    
-    If InStr(myString, "<<") = False Then
-        RegLinkToMarkDown = myString
-    End If
-    
-
-    'Create objects.
-    Dim objRegExp As RegExp
-    Dim objMatch As Match
-    Dim colMatches   As MatchCollection
-    Dim RetStr As String
-
-    ' Create a regular expression object.
-    Set objRegExp = New RegExp
-    objRegExp.Pattern = "<<(.*?),(.*?)>>"
-    objRegExp.IgnoreCase = True
-    objRegExp.Global = True
-    
-    
-    Dim retVal As String
-
-    retVal = myString
-
-    'Test whether the String can be compared.
-    If (objRegExp.test(myString) = True) Then
-        'Get the matches.
-        Set colMatches = objRegExp.Execute(myString)   ' Execute search.]
-        
-        '' <<ddddd1,dddddd>>
-        '' objMatch.value =  <<ddddd1,dddddd>>
-        '' objMatch.submatches(0) ddddd1
-        '' objMatch.submatches(1) dddddd
-        Dim matchAll As String
-        Dim replaceVal  As String
-        For Each objMatch In colMatches   ' Iterate Matches collection.
-            matchAll = objMatch.value
-            replaceVal = "[" & objMatch.submatches(1) & "](#" & Slugify(objMatch.submatches(0)) & ")"
-            retVal = Replace(retVal, matchAll, replaceVal)
-        Next
-    End If
-    RegLinkToMarkDown = retVal
-End Function
 
 
 Sub Slugify_Test()
