@@ -723,7 +723,7 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
     flgSplit = Split(flg + " ", " ")(0)
     pic = trim((Cells(iRow, pictureColumn)))
     cellValue = trim(Cells(iRow, valueColumn))
-    cellValue = Replace(cellValue, "<", "\<")
+    cellValue = MarkdownEscape(cellValue, sheetInfo.Item("HTMLESC")) ''Replace(cellValue, "<", "\<")
 
     If UCase(flgSplit) = "MD" Then
        flg = Mid(flg, 4)
@@ -885,7 +885,7 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
         For ii = 0 To tableRowTo - iRow + 1
             For jj = 0 To tableColTo - 1
                 If (Left(trim(Cells(iRow + ii, tableColumns(jj))), 2) <> "<!") Then
-                    vv(ii, jj) = Replace(Cells(iRow + ii, tableColumns(jj)), "<", "\<")
+                    vv(ii, jj) = MarkdownEscape(Cells(iRow + ii, tableColumns(jj)), sheetInfo.Item("HTMLESC")) ''Replace(Cells(iRow + ii, tableColumns(jj)), "<", "\<")
                 Else
                     vv(ii, jj) = Cells(iRow + ii, tableColumns(jj))
                 End If
@@ -972,6 +972,10 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
         If nestIndex < 0 Then
             nestIndex = 0
         End If
+    ElseIf UCase(flg) = "ESCON" Then
+        sheetInfo.SetInformation "HTMLESC", "ON"
+    ElseIf UCase(flg) = "ESCOFF" Then
+        sheetInfo.SetInformation "HTMLESC", "OFF"
     Else
         If cellValue <> "" Then
             tempBody = MarkDownIndent(nestIndex) & IIf(flg = "", "", flg & " ") & sep & cellValue
@@ -981,6 +985,15 @@ Private Function makeBodyMD(iRow As Long, ByRef isListContinue As Boolean, ByRef
     End If
     
     makeBodyMD = tempBody
+End Function
+
+Private Function MarkdownEscape(source As String, strHtmlEsc As String) As String
+    Dim s As String
+    s = source
+    If UCase(strHtmlEsc) <> "OFF" Then
+        s = Replace(s, "<", "\<")
+    End If
+    MarkdownEscape = s
 End Function
 
 Private Function MarkDownIndent(nestIndex As Long) As String

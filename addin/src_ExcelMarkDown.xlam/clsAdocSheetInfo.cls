@@ -76,6 +76,10 @@ Public Sub SetSheetInfo(ByRef sht As Worksheet, ByVal FLGCOL As Long, ByVal VALU
     End If
 End Sub
 
+Public Sub SetInformation(ByVal myKey As String, ByVal theValue As String)
+    dicSheetParams.Add UCase(myKey), theValue
+End Sub
+
 Public Function langs() As Variant()
     langs = dicLangs.Items()
 End Function
